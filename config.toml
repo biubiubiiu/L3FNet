@@ -1,0 +1,44 @@
+[env]
+exp_dir = 'experiments'
+exp_name = 'L3F_reproduced'
+num_workers = 8
+
+[train]
+num_iters = 180000
+batch_size = 1
+base_lr = 1e-4
+
+[train.dataset]
+root = './L3F-dataset'
+split = '20'
+patch_size = 180
+view_size = 12
+boundary_ignore = 4
+
+[val]
+val_step = 20000
+
+[val.dataset]
+root = './L3F-dataset'
+split = '20'
+boundary_ignore = 4
+
+[[val.metrics]]
+name = 'PSNR'
+primary = true
+
+[[val.metrics]]
+name = 'SSIM'
+
+[test]
+
+[test.dataset]
+root = './L3F-dataset'
+split = '20'
+boundary_ignore = 4
+
+[[test.metrics]]
+name = 'PSNR'
+
+[[test.metrics]]
+name = 'SSIM'
