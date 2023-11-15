@@ -3,17 +3,21 @@ exp_dir = 'experiments'
 exp_name = 'L3F_reproduced'
 num_workers = 8
 
+[net]
+resolution = 8
+
 [train]
 num_iters = 180000
 batch_size = 1
 base_lr = 1e-4
+save_step = 20000
 
 [train.dataset]
 root = './L3F-dataset'
 split = '20'
 patch_size = 180
 view_size = 12
-boundary_ignore = 4
+cropped_resolution = 8
 
 [val]
 val_step = 20000
@@ -21,7 +25,7 @@ val_step = 20000
 [val.dataset]
 root = './L3F-dataset'
 split = '20'
-boundary_ignore = 4
+cropped_resolution = 8
 
 [[val.metrics]]
 name = 'PSNR'
@@ -35,7 +39,7 @@ name = 'SSIM'
 [test.dataset]
 root = './L3F-dataset'
 split = '20'
-boundary_ignore = 4
+cropped_resolution = 8
 
 [[test.metrics]]
 name = 'PSNR'

@@ -7,7 +7,6 @@ from pprint import pformat
 
 import torch
 import torch.nn.functional as F
-from PIL import Image
 from torch.optim import Adam
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
@@ -38,7 +37,7 @@ def main():
     logging.info(f'using config file:\n{pformat(config)}')
     logging.info(f'using device {env.device}')
 
-    model = L3FNet().to(env.device)
+    model = L3FNet(resolution=config.net.resolution).to(env.device)
     optimizer = Adam(model.parameters(), lr=config.train.base_lr)
 
     train_dataset = L3FDataset(config.train.dataset, mode='train', memorize=True)
@@ -119,11 +118,11 @@ def main():
                     quant_gt = gt.mul(255).add_(0.5).clamp_(0, 255).to('cpu', torch.uint8)
 
                     for (_, metric) in val_metrics:
-                        metric.update(quant_out, quant_gt)
+                        metric.update(quant_out.float(), quant_gt.float())
 
                     if args.save_images:
                         save_path = os.path.join(env.visual_dir(iter='final'), f'{stem}.png')
-                        save_image(out, save_path, nrow=8, padding=0, normalize=False)
+                        save_image(out, save_path, nrow=config.net.resolution, padding=0, normalize=False)
 
                 metric_vals = []
                 for i, (name, metric) in enumerate(val_metrics):
@@ -143,6 +142,9 @@ def main():
 
                 summary = '; '.join([f'{name} {val:.3f}' for (name, _), val in zip(val_metrics, metric_vals)])
                 logging.debug(f'iter {iteration} validation: {summary}')
+
+        if config.train.save_step and iteration % config.train.save_step == 0:
+            utils.save_state_dict(model, optimizer, iteration, os.path.join(env.save_dir, f'iter{iteration}.pth'))
 
         utils.save_state_dict(model, optimizer, iteration, os.path.join(env.save_dir, 'latest.pth'))
 

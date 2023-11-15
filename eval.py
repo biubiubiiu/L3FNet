@@ -30,7 +30,7 @@ def main():
     print(f'using config file:\n{pformat(config)}')
     print(f'using device {env.device}')
 
-    model = L3FNet().to(env.device)
+    model = L3FNet(resolution=args.net.resolution).to(env.device)
     ckpt = torch.load(args.ckpt, map_location=env.device)
     model.load_state_dict(ckpt['model_state_dict'])
     model.eval()
@@ -62,7 +62,7 @@ def main():
 
             if args.save_images:
                 save_path = os.path.join(env.visual_dir(iter='final'), f'{stem}.png')
-                save_image(out, save_path, nrow=8, padding=0, normalize=False)
+                save_image(out, save_path, nrow=config.net.resolution, padding=0, normalize=False)
 
     summary = '; '.join([f'{name} {metric.compute():.3f}' for (name, metric) in test_metrics])
     print(f'test result: {summary}')

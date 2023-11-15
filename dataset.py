@@ -1,4 +1,5 @@
 import itertools
+import math
 import pathlib
 
 import torch
@@ -36,10 +37,12 @@ class L3FDataset(Dataset):
 
         self.training_view_size = cfg.view_size or None
 
-        # ignore peripheral views that are affected by ghosting and vignetting effect
-        boundary_ignore = cfg.boundary_ignore or 0
-        self.sampled_area_start = boundary_ignore
-        self.sampled_area_end = 15 - boundary_ignore
+        # crop central views images
+        self.resolution = cfg.cropped_resolution or 15
+
+        # ignore more views from the top and left boundary to align the official implementation
+        self.sampled_area_start = math.ceil((15 - self.resolution) * 0.5)
+        self.sampled_area_end = self.sampled_area_start + self.resolution
 
         self.memorize = memorize
         # memory cache, indexed by file paths
@@ -123,11 +126,7 @@ class L3FDataset(Dataset):
 
         sai_H, sai_W = lq_patches.shape[-2:]
 
-        # NOTE: normally, it should be `span = self.sampled_area_end - self.sampled_area_start`.
-        # we set `span=end-start+1` to align the original implementation.
-        # this it would ignore more views from the top and left boundary.
-        span = self.sampled_area_end - self.sampled_area_start + 1
-        n_span_views = span ** 2
+        span, n_span_views = self.resolution, self.resolution ** 2
         packed_all_views, packed_neighbor_views, packed_gt_views = (
             torch.empty(size=(n_span_views, 3, sai_H, sai_W)),
             torch.empty(size=(n_span_views, 5, 3, sai_H, sai_W)),
@@ -161,7 +160,7 @@ if __name__ == '__main__':
     from mpl_toolkits.axes_grid1 import ImageGrid
     from torchvision.utils import make_grid
 
-    cfg = Dict({'root': './L3F-dataset', 'split': '20', 'boundary_ignore': 4})
+    cfg = Dict({'root': './L3F-dataset', 'split': '20', 'cropped_resolution': 8})
     dataset = L3FDataset(cfg, mode='test', memorize=False)
 
     fig = plt.figure(figsize=(20, 6))
@@ -173,8 +172,8 @@ if __name__ == '__main__':
         data['gt']
     )
 
-    all = make_grid(all, nrow=8, padding=0, normalize=False)
-    gt = make_grid(gt, nrow=8, padding=0, normalize=False)
+    all = make_grid(all, nrow=cfg.cropped_resolution, padding=0, normalize=False)
+    gt = make_grid(gt, nrow=cfg.cropped_resolution, padding=0, normalize=False)
 
     all = all.squeeze(0).permute(1, 2, 0).numpy()
     gt = gt.squeeze(0).permute(1, 2, 0).numpy()
