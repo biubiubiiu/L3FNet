@@ -46,7 +46,7 @@ def main():
     train_loader = repeater(train_loader)  # infinite sampling
 
     val_dataset = L3FDataset(config.val.dataset, mode='test')
-    val_loader = DataLoader(val_dataset, batch_size=1, shuffle=False, num_workers=config.env.num_workers)
+    val_loader = DataLoader(val_dataset, batch_size=1, shuffle=False, num_workers=0)
 
     val_metrics = [utils.init_metrics(it) for it in config.val.metrics]
     primary_val_metric_idx = next((i for i, m in enumerate(config.val.metrics) if m.primary == True), 0)

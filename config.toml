@@ -1,6 +1,6 @@
 [env]
 exp_dir = 'experiments'
-exp_name = 'L3F_reproduced'
+exp_name = 'L3F_split20_8x8'
 num_workers = 8
 
 [net]

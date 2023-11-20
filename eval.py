@@ -30,7 +30,7 @@ def main():
     print(f'using config file:\n{pformat(config)}')
     print(f'using device {env.device}')
 
-    model = L3FNet(resolution=args.net.resolution).to(env.device)
+    model = L3FNet(resolution=config.net.resolution).to(env.device)
     ckpt = torch.load(args.ckpt, map_location=env.device)
     model.load_state_dict(ckpt['model_state_dict'])
     model.eval()
